@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: arbeitszeiten-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn api_main:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: uname
+        sync: false
+      - key: db
+        sync: false
+      - key: password
+        sync: false
+      - key: host
+        sync: false
+      - key: port
+        sync: false
+      - key: scheme
+        sync: false

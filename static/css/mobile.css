@@ -1,0 +1,369 @@
+.scrollwindow {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.scrollwindow::-webkit-scrollbar {
+    display: none;
+}
+
+#profile-menu {
+    position: absolute;
+    top: 3rem;
+    right: -1rem;
+    width: 100vw;
+    height: calc(110vh - 6.875rem);
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    z-index: 1000;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    padding: 0px;
+    border: solid 1px;
+    border-color: var(--selected-color);
+    user-select: none;
+    touch-action: pan-y;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease-out;
+}
+
+/* Wenn das details-Element geöffnet ist */
+.profile details[open] #profile-menu {
+    opacity: 1;
+    transform: translateY(0%);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+}
+
+/* Spezielle Ausblende-Animation nach unten */
+#profile-menu.closing {
+    opacity: 0 !important;
+    transform: translateY(100%) !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+    transition: all 0.3s ease-out !important;
+}
+
+#profile-menu ul li:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.more-menu-btn {
+    display: none;
+}
+
+.bar {
+    width: 100%;
+    height: .15rem;
+    border-radius: 5px;
+    background-color: var(--selected-color);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    position: sticky;
+    top: .5rem;
+    transform: scaleX(.2);
+    z-index: 3;
+}
+
+.bar-background {
+    position: sticky;
+    background-color: var(--background-color);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    top: 0px;
+    width: 100%;
+    height: 1rem;
+    z-index: 2;
+}
+
+
+
+.backbutton {
+    top: 8rem;
+    left: 1rem;
+}
+
+.legal {
+    bottom: 10rem;
+}
+
+
+
+/* Container zentrieren mit Flexbox */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Karten oben */
+.top-cards {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 3.5rem;
+    margin-bottom: 4rem;
+}
+
+/* Einzelne Karte */
+.card {
+    background: #442223;
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    padding: 1rem 1.5rem;
+    text-align: center;
+    min-width: 140px;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Insgesamt Karte - klickbar */
+.card-overall {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.card-overall:hover {
+    transform: translateY(-2px);
+}
+
+/* Monats Karte */
+.card.month, .card-month {
+    background: #444;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card.month:hover, .card-month:hover {
+    background: #555;
+    transform: translateY(-2px);
+}
+
+/* Progress background for month card */
+.progress-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #777;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+/* Card content wrapper */
+.card-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+/* Überschrift in Karte */
+.card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.03em;
+}
+
+.card-value {
+    font-size: 2.2rem;
+    font-weight: bold;
+}
+
+/* Bereich "Heute" */
+.edit-section {
+    margin-top: 5.5rem;
+    text-align: center;
+}
+
+.day-selection {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    cursor: pointer;
+    background-color: #222222;
+    transition: background-color 0.3s ease;
+    padding: 0;
+    border-radius: 10px;
+    display: inline-block;
+    position: relative;
+}
+
+.day-selection:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.styled-date-picker {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.5rem 1.5rem;
+    border-radius: 10px;
+    font-family: inherit;
+    margin: auto;
+}
+
+.styled-date-picker::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.edit-time-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0px;
+}
+
+.edit-btn {
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin: 0 -1rem;
+    width: 5rem;
+    height: 5rem;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background: #555;
+    transform: translateY(-2px);
+}
+
+.edit-btn:active {
+    background: #2a2a2a;
+    transform: translateY(0px);
+}
+
+.edit-time-value {
+    background: #222;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 0.7rem 2rem;
+    width: 6rem;
+    height: 2.5rem;
+    top: 50%;
+    margin: 0 auto;
+}
+
+/* Responsive Design für kleinere Mobile-Geräte */
+@media (max-width: 500px) {
+    .container {
+        min-height: 100vh;
+    }
+    .top-cards {
+        gap: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 3rem;
+    }
+    .card {
+        min-width: 110px;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+    }
+    .day-selection {
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 0;
+        font-size: 1.05rem;
+        font-weight: 500;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    
+    
+   
+    
+    .styled-date-picker::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        cursor: pointer;
+    }
+    .edit-time-value {
+        font-size: 1.5rem;
+        padding: 0.5rem 1.2rem;
+        min-width: 80px;
+    }
+    .edit-btn {
+        font-size: 0.95rem;
+        padding: 0.4rem 0.85rem;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    
+    .edit-btn:hover {
+        background: #555;
+        transform: translateY(-2px);
+    }
+    
+    /* Hide bullet points in mobile profile menu */
+    .first-ul-width {
+        display: none !important;
+    }
+}
+
+/* Global mobile styles - hide bullet points on smaller screens */
+@media (max-width: 765px) {
+    #profile-menu .first-ul-width {
+        display: none !important;
+    }
+    
+    /* Erhöhte Randabstände für Logo und Profil-Bild auf Mobile */
+    .logo-pic {
+        margin: 1rem;
+    }
+    
+    .profile {
+        margin: 1rem;
+    }
+    
+    /* Modal-Animationen für Mobile */
+    .modal-content {
+        animation: mobile-modal-appear 0.3s ease-out;
+    }
+    
+    @keyframes mobile-modal-appear {
+        0% {
+            opacity: 0;
+            transform: scale(0.9) translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+}
+
