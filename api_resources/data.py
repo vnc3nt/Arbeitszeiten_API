@@ -82,7 +82,7 @@ class Data(Resource):
         
         parser = reqparse.RequestParser()
         parser.add_argument('date', type=str, required=True, help='Datum ist erforderlich (Format: YYYY-MM-DD)')
-        parser.add_argument('category_id', type=int, required=True, help='Kategorie-ID ist erforderlich')
+        parser.add_argument('category_id', type=int, required=False)  # ⭐ NICHT MEHR REQUIRED!
         parser.add_argument('hours', type=float, required=True, help='Stunden sind erforderlich')
         parser.add_argument('max_hours', type=float, required=False)
         args = parser.parse_args()
@@ -93,21 +93,29 @@ class Data(Resource):
         except ValueError:
             return {'message': 'Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD'}, 400
         
-        # Verify category belongs to user
-        user_category = db.session.query(category).filter(
-            category.id == args['category_id'],
-            category.userid == user_id
-        ).first()
+        # ⭐ NEU: Verify category nur wenn gegeben
+        if args['category_id'] is not None:
+            user_category = db.session.query(category).filter(
+                category.id == args['category_id'],
+                category.userid == user_id
+            ).first()
+            
+            if not user_category:
+                return {'message': 'Kategorie nicht gefunden oder gehört nicht zum Benutzer'}, 404
         
-        if not user_category:
-            return {'message': 'Kategorie nicht gefunden oder gehört nicht zum Benutzer'}, 404
-        
-        # Check if entry already exists
-        existing_entry = db.session.query(data).filter(
-            data.userid == user_id,
-            data.date == entry_date,
-            data.categoryid == args['category_id']
-        ).first()
+        # ⭐ NEU: Check if entry exists (mit oder ohne category_id)
+        if args['category_id'] is not None:
+            existing_entry = db.session.query(data).filter(
+                data.userid == user_id,
+                data.date == entry_date,
+                data.categoryid == args['category_id']
+            ).first()
+        else:
+            existing_entry = db.session.query(data).filter(
+                data.userid == user_id,
+                data.date == entry_date,
+                data.categoryid.is_(None)  # ⭐ Suche explizit nach NULL
+            ).first()
         
         if existing_entry:
             # Update existing entry
@@ -120,7 +128,7 @@ class Data(Resource):
             new_entry = data(
                 userid=user_id,
                 date=entry_date,
-                categoryid=args['category_id'],
+                categoryid=args['category_id'],  # ⭐ Kann None sein
                 data=Decimal(str(args['hours'])),
                 maxhours=Decimal(str(args['max_hours'])) if args['max_hours'] is not None else None
             )
@@ -132,9 +140,9 @@ class Data(Resource):
         return {
             'message': message,
             'date': entry_date.strftime('%Y-%m-%d'),
-            'category_id': args['category_id'],
             'hours': args['hours']
         }, 201 if not existing_entry else 200
+
 
 
 class DataByDate(Resource):
@@ -209,7 +217,7 @@ class DataByDate(Resource):
         """Update hours for a specific date and category"""
         
         parser = reqparse.RequestParser()
-        parser.add_argument('category_id', type=int, required=True, help='Kategorie-ID ist erforderlich')
+        parser.add_argument('category_id', type=int, required=False)  # ⭐ NICHT MEHR REQUIRED!
         parser.add_argument('hours', type=float, required=False)
         parser.add_argument('max_hours', type=float, required=False)
         parser.add_argument('increment', type=float, required=False)
@@ -220,33 +228,72 @@ class DataByDate(Resource):
         except ValueError:
             return {'message': 'Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD'}, 400
         
-        # Find existing entry
-        entry = db.session.query(data).filter(
-            data.userid == user_id,
-            data.date == entry_date,
-            data.categoryid == args['category_id']
-        ).first()
+        # ⭐ NEU: Wenn category_id gegeben ist, validiere sie
+        if args['category_id'] is not None:
+            user_category = db.session.query(category).filter(
+                category.id == args['category_id'],
+                category.userid == user_id
+            ).first()
+            
+            if not user_category:
+                return {'message': 'Kategorie nicht gefunden oder gehört nicht zum Benutzer'}, 404
         
+        # ⭐ NEU: Finde Eintrag für dieses Datum (OHNE category_id Filter wenn null)
+        if args['category_id'] is not None:
+            # Suche mit category_id
+            entry = db.session.query(data).filter(
+                data.userid == user_id,
+                data.date == entry_date,
+                data.categoryid == args['category_id']
+            ).first()
+        else:
+            # Suche OHNE category_id - nimm den ersten Eintrag für dieses Datum
+            entry = db.session.query(data).filter(
+                data.userid == user_id,
+                data.date == entry_date
+            ).first()
+        
+        # ⭐ NEU: Wenn kein Eintrag existiert, erstelle einen neuen
         if not entry:
-            return {'message': 'Eintrag nicht gefunden'}, 404
-        
-        # Update hours
-        if args['hours'] is not None:
-            entry.data = Decimal(str(args['hours']))
-        elif args['increment'] is not None:
-            current_hours = float(entry.data) if entry.data else 0.0
-            new_hours = max(0, current_hours + args['increment'])
-            entry.data = Decimal(str(new_hours))
-        
-        # Update max_hours if provided
-        if args['max_hours'] is not None:
-            entry.maxhours = Decimal(str(args['max_hours']))
+            # Berechne die Stunden
+            if args['hours'] is not None:
+                new_hours = args['hours']
+            elif args['increment'] is not None:
+                new_hours = max(0, args['increment'])
+            else:
+                new_hours = 0
+            
+            # Erstelle neuen Eintrag
+            entry = data(
+                userid=user_id,
+                date=entry_date,
+                categoryid=args['category_id'],  # ⭐ Kann None sein!
+                data=Decimal(str(new_hours)),
+                maxhours=Decimal(str(args['max_hours'])) if args['max_hours'] is not None else None
+            )
+            db.session.add(entry)
+            message = 'Neuer Eintrag erstellt'
+        else:
+            # Update existierenden Eintrag
+            if args['hours'] is not None:
+                entry.data = Decimal(str(args['hours']))
+            elif args['increment'] is not None:
+                current_hours = float(entry.data) if entry.data else 0.0
+                new_hours = max(0, current_hours + args['increment'])
+                entry.data = Decimal(str(new_hours))
+            
+            # Update max_hours if provided
+            if args['max_hours'] is not None:
+                entry.maxhours = Decimal(str(args['max_hours']))
+            
+            message = 'Eintrag erfolgreich aktualisiert'
         
         db.session.commit()
         
         return {
-            'message': 'Eintrag erfolgreich aktualisiert',
+            'message': message,
             'date': date,
             'hours': float(entry.data) if entry.data else None
         }, 200
+
 
