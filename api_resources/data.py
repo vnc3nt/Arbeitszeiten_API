@@ -13,12 +13,17 @@ class Data(Resource):
     def get(self, user_id):
         """Get all data for the authenticated user"""
         
-        # Get query parameters for filtering
+        # Get query parameters - aber NICHT required!
         parser = reqparse.RequestParser()
-        parser.add_argument('start_date', type=str, required=False)
-        parser.add_argument('end_date', type=str, required=False)
-        parser.add_argument('category_id', type=int, required=False)
-        args = parser.parse_args()
+        parser.add_argument('start_date', type=str, required=False, location='args')  # <-- location='args'
+        parser.add_argument('end_date', type=str, required=False, location='args')
+        parser.add_argument('category_id', type=int, required=False, location='args')
+        
+        try:
+            args = parser.parse_args()
+        except Exception as e:
+            # Falls Parsing fehlschlägt, ignoriere es und verwende leere args
+            args = {'start_date': None, 'end_date': None, 'category_id': None}
         
         # Base query
         query = db.session.query(data).filter(data.userid == user_id)
